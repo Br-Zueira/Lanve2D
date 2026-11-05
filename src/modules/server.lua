@@ -2,7 +2,7 @@ local enet = require "enet"
 local host = enet.host_create("localhost:6789")
 
 function serverUpdate()
-    local event = host:service(100)
+    local event = host:service(0)
     while event do
         if event.type == "receive" then
             print("Got message: ", event.data, event.peer)
@@ -12,7 +12,7 @@ function serverUpdate()
         elseif event.type == "disconnect" then
             print(event.peer, "disconnected.")
         end
-        event = host:service()
+        event = host:service(0)
     end
 end
 
