@@ -1,3 +1,4 @@
+-- Main.lua
 local client = require 'modules.client'
 local server = require 'modules.server'
 local Player = require 'modules.player'
@@ -5,6 +6,8 @@ local Player = require 'modules.player'
 local isServer = false
 
 local selfPlayer = Player.new(400, 300)
+
+local playerList = {}
 
 function love.load(args)
     if args[1] == "server" then
@@ -28,13 +31,22 @@ function love.update(dt)
     selfPlayer:update(dt, inputs)
 
     if isServer then
-        server()
+        playerList = server(selfPlayer, dt)
     else
-        client()
+        playerList = client(selfPlayer, inputs)
     end
 end
 
 function love.draw()
     love.graphics.setColor(0.0, 0.0, 0.0, 1.0)
-    selfPlayer:draw()
+    if isServer then
+        selfPlayer:draw()
+        for _, client in pairs(playerList) do
+            client.player:draw()
+        end
+    else
+        for _, player in pairs(playerList) do
+            player:draw()
+        end
+    end
 end
