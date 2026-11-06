@@ -40,7 +40,6 @@ end
 function love.draw()
     love.graphics.setColor(0.0, 0.0, 0.0, 1.0)
     if isServer then
-        selfPlayer:draw()
         for _, client in pairs(playerList) do
             client.player:draw()
         end
@@ -49,4 +48,5 @@ function love.draw()
             player:draw()
         end
     end
+    selfPlayer:draw()
 end

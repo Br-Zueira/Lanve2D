@@ -21,23 +21,29 @@ function Player:update(dt, inputs)
     self.speedX = 0
     self.speedY = 0
 
+    local alreadyProcessed = {}
     for _, input in ipairs(inputs) do
-        if input == 'd' then
-            self.speedX = self.speedX + self.speed
-        end
+        if not alreadyProcessed[input] then
+            alreadyProcessed[input] = true
 
-        if input == 'a' then
-            self.speedX = self.speedX - self.speed
-        end
+            if input == 'd' then
+                self.speedX = self.speedX + self.speed
+            end
 
-        if input == 's' then
-            self.speedY = self.speedY + self.speed
-        end
+            if input == 'a' then
+                self.speedX = self.speedX - self.speed
+            end
 
-        if input == 'w' then
-            self.speedY = self.speedY - self.speed
-        end
+            if input == 's' then
+                self.speedY = self.speedY + self.speed
+            end
 
+            if input == 'w' then
+                self.speedY = self.speedY - self.speed
+            end
+
+            table.insert(alreadyProcessed, input)
+        end
     end
 
     self.x = self.x + (self.speedX * dt)
