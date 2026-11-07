@@ -21,6 +21,7 @@ end
 function love.update(dt)
     VW, VH = love.graphics.getDimensions()
 
+    -- Captures every input
     local inputs = {}
 
     if love.keyboard.isDown('w') then table.insert(inputs, 'w') end
@@ -28,8 +29,10 @@ function love.update(dt)
     if love.keyboard.isDown('s') then table.insert(inputs, 's') end
     if love.keyboard.isDown('d') then table.insert(inputs, 'd') end
 
+    -- Updates itself first
     selfPlayer:update(dt, inputs)
 
+    -- Updates players (the way of doing it depends if its the host or a client)
     if isServer then
         playerList = server(selfPlayer, dt)
     else
@@ -38,8 +41,12 @@ function love.update(dt)
 end
 
 function love.draw()
+    -- Resets color
     love.graphics.setColor(0.0, 0.0, 0.0, 1.0)
+
+    -- Different ways of accessing the player:draw function depending if its server or client
     if isServer then
+        selfPlayer:draw()
         for _, client in pairs(playerList) do
             client.player:draw()
         end
@@ -48,5 +55,4 @@ function love.draw()
             player:draw()
         end
     end
-    selfPlayer:draw()
 end

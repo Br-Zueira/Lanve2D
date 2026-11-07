@@ -1,15 +1,21 @@
 -- Server.lua
 local Player = require "modules.player"
 local enet = require "enet"
+
+-- Opens a connection as host
 local host = enet.host_create("localhost:6789")
 
+-- List of connected clients (doesnt include itself)
 local playerList = {}
 local nextId = 1
 
 local function serverUpdate(selfPlayer, dt)
+    -- Captures network events
     local event = host:service(0)
     while event do
+        -- If its a message
         if event.type == "receive" then
+            -- If the message is a input update, stores it to later update players
             local inputStr = event.data:match("^input:(.*)$")
             if inputStr then
                 local inputList = {}
@@ -18,12 +24,23 @@ local function serverUpdate(selfPlayer, dt)
                 end
                 playerList[event.peer].inputs = inputList
             end
+
+        -- If its a client that connected
         elseif event.type == "connect" then
+            -- Sent them their id in the match
             event.peer:send("your_id:" .. nextId)
+
+            -- Creates a new player on server that represents the new client
             local newPlayer =  Player.new(400, 300, {1.0, 0.0, 0.0, 1.0})
+
+            -- Stores the new player
             playerList[event.peer] = { id=nextId, player=newPlayer, inputs={} }
             nextId = nextId + 1
+
+        -- If its a client that disconnected
         elseif event.type == "disconnect" then
+            -- Gets the player that represents the disconnected client and eliminates it from playerList
+            -- And tells clients to do the same
             local player = playerList[event.peer]
 
             if player then
@@ -34,6 +51,7 @@ local function serverUpdate(selfPlayer, dt)
         event = host:service(0)
     end
 
+    -- Updates players and broadcast updated data to clients
     host:broadcast("update_player:" .. 0 .. ":" .. selfPlayer.x .. ":" .. selfPlayer.y)
     for _, player in pairs(playerList) do
         if player.player then
