@@ -50,9 +50,12 @@ function Player:update(dt, inputs)
     self.y = self.y + (self.speedY * dt)
 end
 
-function Player:draw()
+function Player:draw(offsetX, offsetY)
     love.graphics.setColor(self.color)
-    love.graphics.rectangle('fill', self.x, self.y, self.size, self.size)
+    love.graphics.rectangle('fill',
+        self.x - offsetX + VW / 2,
+        self.y - offsetY + VH / 2,
+    self.size, self.size)
 end
 
 return Player

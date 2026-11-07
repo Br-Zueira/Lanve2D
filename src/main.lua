@@ -46,13 +46,13 @@ function love.draw()
 
     -- Different ways of accessing the player:draw function depending if its server or client
     if isServer then
-        selfPlayer:draw()
+        selfPlayer:draw(selfPlayer.x, selfPlayer.y)
         for _, client in pairs(playerList) do
-            client.player:draw()
+            client.player:draw(selfPlayer.x, selfPlayer.y)
         end
     else
         for _, player in pairs(playerList) do
-            player:draw()
+            player:draw(selfPlayer.x, selfPlayer.y)
         end
         client.selectServerUI()
     end
