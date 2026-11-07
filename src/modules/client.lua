@@ -22,34 +22,13 @@ discovery:settimeout(0)
 local client = {}
 
 function client.clientUpdate(selfPlayer, inputs, dt)
+    -- If not on a match, searches for one, otherwise continues execution normally
     if not isOnMatch and not server then
-        discoveryTimer = discoveryTimer + dt
-        if discoveryTimer >= 2 then
-            discoveryTimer = 0
-            discovery:sendto("LANVE2D_DISCOVER", "127.0.0.1", 6788)
-            discovery:sendto(
-                "LANVE2D_DISCOVER",
-                "255.255.255.255",
-                6788
-            )
-        end
-        while true do
-            local message, ip, _ = discovery:receivefrom()
-
-            if not message then
-                break
-            end
-
-            if message == "LANVE2D_HOST" then
-                serverList[ip] = {
-                    ip = ip,
-                    port = 6789
-                }
-            end
-        end
+        client.searchServer(dt)
         return {}
     end
 
+    -- Resets server list if on a match
     serverList = {}
 
     -- Captures events
@@ -115,6 +94,41 @@ function client.clientUpdate(selfPlayer, inputs, dt)
     return playerList
 end
 
+function client.searchServer(dt)
+    if isOnMatch or server then return end
+
+    -- Sends discover packages every 2 seconds for the whole network, including localhost
+    discoveryTimer = discoveryTimer + dt
+    if discoveryTimer >= 2 then
+        discoveryTimer = 0
+        discovery:sendto("LANVE2D_DISCOVER", "127.0.0.1", 6788)
+        discovery:sendto(
+            "LANVE2D_DISCOVER",
+            "255.255.255.255",
+            6788
+        )
+    end
+
+    -- Processes every received package to see if its a game host
+    while true do
+        local message, ip, _ = discovery:receivefrom()
+
+        if not message then
+            break
+        end
+
+        if message == "LANVE2D_HOST" then
+            serverList[ip] = {
+                ip = ip,
+                port = 6789
+            }
+        end
+    end
+
+    -- Logic for selecting a server
+    client.selectServerLogic()
+end
+
 -- Server selection data
 local selectedServerIndex = 1
 local selectedServer = ""
@@ -123,40 +137,19 @@ local selectedServer = ""
 local isArrowDown = false
 local isEnterDown = false
 
+local servers = {}
+
 function client.selectServerUI()
-    -- This logic should only happen when client not on a match
+    -- This ui should only appear when client not on a match
     if isOnMatch then return end
 
-    local servers = {}
-    for _, server in pairs(serverList) do
-        servers[#servers + 1] = server
-    end
-
-    table.sort(servers, function (a, b)
-        return a.ip < b.ip
-    end)
-
-    -- If no server found
+    -- If no server found, prints it
     if #servers == 0 then
         love.graphics.setColor(0.2, 0.5, 0.2, 1.0)
         love.graphics.print("No servers found", 10, 10)
         selectedServer = ""
         selectedServerIndex = 1
         return -- Ensures the following logic only applies where there is at least one server
-    end
-
-    -- Server selection input
-    -- Navigates through the server list
-    if love.keyboard.isDown("up") then
-        if isArrowDown then return end
-        isArrowDown = true
-        selectedServerIndex = ((selectedServerIndex) % #servers) + 1
-    elseif love.keyboard.isDown("down") then
-        if isArrowDown then return end
-        isArrowDown = true
-        selectedServerIndex = ((selectedServerIndex - 2) % #servers) + 1
-    else
-        isArrowDown = false
     end
 
     -- Organizes the UI properly
@@ -172,6 +165,34 @@ function client.selectServerUI()
 
         -- Prints the found servers
         love.graphics.print("Server: " .. server.ip, 10, (i - 1) * fontHeight + 10)
+    end
+end
+
+function client.selectServerLogic()
+    -- This logic should only happen when client not on a match
+    if isOnMatch then return end
+
+    servers = {}
+    for _, server in pairs(serverList) do
+        servers[#servers + 1] = server
+    end
+
+    table.sort(servers, function (a, b)
+        return a.ip < b.ip
+    end)
+
+    -- Server selection input
+    -- Navigates through the server list
+    if love.keyboard.isDown("up") then
+        if isArrowDown then return end
+        isArrowDown = true
+        selectedServerIndex = ((selectedServerIndex) % #servers) + 1
+    elseif love.keyboard.isDown("down") then
+        if isArrowDown then return end
+        isArrowDown = true
+        selectedServerIndex = ((selectedServerIndex - 2) % #servers) + 1
+    else
+        isArrowDown = false
     end
 
     -- Pressing enter connects to a server

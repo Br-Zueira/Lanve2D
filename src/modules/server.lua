@@ -21,7 +21,7 @@ local function serverUpdate(selfPlayer, dt)
         local message, ip, port = udp:receivefrom()
 
         if not message then break end
-        
+
         if message == "LANVE2D_DISCOVER" then
             udp:sendto("LANVE2D_HOST", ip, port)
         end
