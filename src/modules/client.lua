@@ -11,8 +11,6 @@ local playerList = {}
 -- Searches LAN for server
 local server = nil
 local serverList = {}
-local selectedServerIndex = 0
-local selectedServer = ""
 local isOnMatch = false
 
 local discovery = socket.udp()
@@ -117,17 +115,44 @@ function client.clientUpdate(selfPlayer, inputs, dt)
     return playerList
 end
 
+-- Server selection data
+local selectedServerIndex = 1
+local selectedServer = ""
+
 -- Imitates the functioning of love.keypressed without needing a hook
-local isDown = false
+local isArrowDown = false
+local isEnterDown = false
 
 function client.selectServerUI()
     -- This logic should only happen when client not on a match
     if isOnMatch then return end
 
-    -- Organizes the UI properly
-    local i = 0
-    local fontHeight = (love.graphics.getFont()):getHeight()
+    local servers = {}
     for _, server in pairs(serverList) do
+        servers[#servers + 1] = server
+    end
+
+    table.sort(servers, function (a, b)
+        return a.ip < b.ip
+    end)
+
+    -- Server selection input
+    -- Navigates through the server list
+    if love.keyboard.isDown("up") then
+        if isArrowDown then return end
+        isArrowDown = true
+        selectedServerIndex = ((selectedServerIndex) % #servers) + 1
+    elseif love.keyboard.isDown("down") then
+        if isArrowDown then return end
+        isArrowDown = true
+        selectedServerIndex = ((selectedServerIndex - 2) % #servers) + 1
+    else
+        isArrowDown = false
+    end
+
+    -- Organizes the UI properly
+    local fontHeight = (love.graphics.getFont()):getHeight()
+    for i, server in ipairs(servers) do
         -- Shows which server was selected
         if i == selectedServerIndex then
             love.graphics.setColor(0.0, 1.0, 0.0, 1.0)
@@ -137,34 +162,27 @@ function client.selectServerUI()
         end
 
         -- Prints the found servers
-        love.graphics.print("Server: " .. server.ip, 10, i * fontHeight + 10)
-        i = i + 1
+        love.graphics.print("Server: " .. server.ip, 10, (i - 1) * fontHeight + 10)
+
     end
 
     -- If no server found
-    if i == 0 then
+    if #servers == 0 then
         love.graphics.setColor(0.2, 0.5, 0.2, 1.0)
         love.graphics.print("No servers found", 10, 10)
-        selectedServerIndex = 0
+        selectedServer = ""
+        selectedServerIndex = 1
         return -- Ensures the following logic only applies where there is at least one server
     end
 
-    -- Server selection input
-    -- Navigates through the server list
-    if love.keyboard.isDown("up") then
-        if isDown then return end
-        selectedServerIndex = (selectedServerIndex + 1) % i
-    elseif love.keyboard.isDown("down") then
-        if isDown then return end
-        selectedServerIndex = (selectedServerIndex - 1) % i
-    else
-        isDown = false
-    end
-
     -- Pressing enter connects to a server
-    if love.keyboard.isDown("return") then
+    if selectedServer ~= "" and love.keyboard.isDown("return") then
+        if isEnterDown then return end
+        isEnterDown = true
         isOnMatch = true
         server = host:connect(selectedServer .. ":6789")
+    else
+        isEnterDown = false
     end
 end
 
