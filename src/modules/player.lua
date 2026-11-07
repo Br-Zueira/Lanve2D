@@ -46,6 +46,13 @@ function Player:update(dt, inputs)
         end
     end
 
+    -- Vector normalization to avoid diagonal faster than self.speed
+    local length = math.sqrt(self.speedX ^ 2 + self.speedY ^ 2)
+    if length > 0 then
+        self.speedX = self.speedX / length * self.speed
+        self.speedY = self.speedY / length * self.speed
+    end
+
     self.x = self.x + (self.speedX * dt)
     self.y = self.y + (self.speedY * dt)
 end
