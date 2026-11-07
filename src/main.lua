@@ -36,7 +36,7 @@ function love.update(dt)
     if isServer then
         playerList = server(selfPlayer, dt)
     else
-        playerList = client(selfPlayer, inputs, dt)
+        playerList = client.clientUpdate(selfPlayer, inputs, dt)
     end
 end
 
@@ -54,5 +54,6 @@ function love.draw()
         for _, player in pairs(playerList) do
             player:draw()
         end
+        client.selectServerUI()
     end
 end
