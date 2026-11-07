@@ -22,7 +22,7 @@ discovery:settimeout(0)
 local client = {}
 
 function client.clientUpdate(selfPlayer, inputs, dt)
-    if not isOnMatch or not server then
+    if not isOnMatch and not server then
         discoveryTimer = discoveryTimer + dt
         if discoveryTimer >= 2 then
             discoveryTimer = 0
@@ -34,7 +34,7 @@ function client.clientUpdate(selfPlayer, inputs, dt)
             )
         end
         while true do
-            local message, ip, port = discovery:receivefrom()
+            local message, ip, _ = discovery:receivefrom()
 
             if not message then
                 break
@@ -43,7 +43,7 @@ function client.clientUpdate(selfPlayer, inputs, dt)
             if message == "LANVE2D_HOST" then
                 serverList[ip] = {
                     ip = ip,
-                    port = port
+                    port = 6789
                 }
             end
         end
@@ -136,6 +136,15 @@ function client.selectServerUI()
         return a.ip < b.ip
     end)
 
+    -- If no server found
+    if #servers == 0 then
+        love.graphics.setColor(0.2, 0.5, 0.2, 1.0)
+        love.graphics.print("No servers found", 10, 10)
+        selectedServer = ""
+        selectedServerIndex = 1
+        return -- Ensures the following logic only applies where there is at least one server
+    end
+
     -- Server selection input
     -- Navigates through the server list
     if love.keyboard.isDown("up") then
@@ -163,16 +172,6 @@ function client.selectServerUI()
 
         -- Prints the found servers
         love.graphics.print("Server: " .. server.ip, 10, (i - 1) * fontHeight + 10)
-
-    end
-
-    -- If no server found
-    if #servers == 0 then
-        love.graphics.setColor(0.2, 0.5, 0.2, 1.0)
-        love.graphics.print("No servers found", 10, 10)
-        selectedServer = ""
-        selectedServerIndex = 1
-        return -- Ensures the following logic only applies where there is at least one server
     end
 
     -- Pressing enter connects to a server

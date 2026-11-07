@@ -16,10 +16,15 @@ udp:setsockname("*", 6788)
 udp:settimeout(0)
 
 local function serverUpdate(selfPlayer, dt)
-    -- If a device pings for a game LAN discover, responds it
-    local message, ip, port = udp:receivefrom()
-    if message and message == "LANVE2D_DISCOVER" then
-        udp:sendto("LANVE2D_HOST", ip, port)
+    while true do
+        -- If a device pings for a game LAN discover, responds it
+        local message, ip, port = udp:receivefrom()
+
+        if not message then break end
+        
+        if message == "LANVE2D_DISCOVER" then
+            udp:sendto("LANVE2D_HOST", ip, port)
+        end
     end
 
     -- Captures network events
