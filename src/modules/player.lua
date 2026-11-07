@@ -53,8 +53,9 @@ end
 function Player:draw(offsetX, offsetY)
     love.graphics.setColor(self.color)
     love.graphics.rectangle('fill',
-        self.x - offsetX + VW / 2,
-        self.y - offsetY + VH / 2,
+        -- Centralize camera on player and draws every other player relative to it
+        self.x - offsetX + VW / 2 - self.size / 2,
+        self.y - offsetY + VH / 2 - self.size / 2,
     self.size, self.size)
 end
 
