@@ -1,15 +1,27 @@
 -- Server.lua
 local Player = require "modules.player"
 local enet = require "enet"
+local socket = require "socket"
 
 -- Opens a connection as host
-local host = enet.host_create("localhost:6789")
+local host = enet.host_create("*:6789")
 
 -- List of connected clients (doesnt include itself)
 local playerList = {}
 local nextId = 1
 
+-- Socket for LAN discovering
+local udp = socket.udp()
+udp:setsockname("*", 6788)
+udp:settimeout(0)
+
 local function serverUpdate(selfPlayer, dt)
+    -- If a device pings for a game LAN discover, responds it
+    local message, ip, port = udp:receivefrom()
+    if message and message == "LANVE2D_DISCOVER" then
+        udp:sendto("LANVE2D_HOST", ip, port)
+    end
+
     -- Captures network events
     local event = host:service(0)
     while event do

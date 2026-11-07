@@ -36,7 +36,7 @@ function love.update(dt)
     if isServer then
         playerList = server(selfPlayer, dt)
     else
-        playerList = client(selfPlayer, inputs)
+        playerList = client(selfPlayer, inputs, dt)
     end
 end
 
