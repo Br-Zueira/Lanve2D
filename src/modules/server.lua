@@ -11,7 +11,7 @@ local playerList = {}
 local nextId = 1
 
 -- Socket for LAN discovering
-local udp = socket.udp()
+local udp = socket.udp4()
 udp:setsockname("*", 6788)
 udp:settimeout(0)
 
