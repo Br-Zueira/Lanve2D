@@ -6,7 +6,8 @@ local Player = {
     speed = 256,
     color = {1.0, 1.0, 1.0, 1.0},
     x = 0, y = 0,
-    speedX = 0, speedY = 0
+    speedX = 0, speedY = 0,
+    shootCooldown = 0
 }
 Player.__index = Player
 
@@ -56,11 +57,14 @@ function Player:update(dt, inputs, eventListener)
                 self.speedY = self.speedY - self.speed
             end
 
-            -- This check avoids duplicated bullets, otherwise client would recreate the bullet
-            -- when server broadcasted the spawn_bullet message
-            if not IsServer then
-                local aimX, aimY = input:match("^aim:(%-?%d+):(%-?%d+)$")
-                if aimX and aimY then
+            -- Mouse input
+            local aimX, aimY = input:match("^aim:(%-?%d+):(%-?%d+)$")
+            if aimX and aimY then
+
+                -- This check avoids duplicated bullets, otherwise client would recreate the bullet
+                -- when server broadcasted the spawn_bullet message
+                if IsServer and self.shootCooldown == 0 then
+                    self.shootCooldown = 1/10
                     aimX = tonumber(aimX)
                     aimY = tonumber(aimY)
                     local angle = math.atan2(aimY, aimX)
@@ -87,6 +91,8 @@ function Player:update(dt, inputs, eventListener)
         self.x = self.x + self.speedX * dt
         self.y = self.y + self.speedY * dt
     end
+
+    self.shootCooldown = math.max(0, self.shootCooldown - dt)
 end
 
 function Player:draw(cameraX, cameraY)
