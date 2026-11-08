@@ -1,4 +1,6 @@
 -- Player.lua
+local bullet = require 'modules.bullet'
+
 local Player = {
     size = 32,
     speed = 256,
@@ -29,7 +31,7 @@ function Player.new(x, y, customColor)
     return self
 end
 
-function Player:update(dt, inputs)
+function Player:update(dt, inputs, eventListener)
     self.speedX = 0
     self.speedY = 0
 
@@ -54,6 +56,18 @@ function Player:update(dt, inputs)
                 self.speedY = self.speedY - self.speed
             end
 
+            -- This check avoids duplicated bullets, otherwise client would recreate the bullet
+            -- when server broadcasted the spawn_bullet message
+            if not IsServer then
+                local aimX, aimY = input:match("^aim:(%-?%d+):(%-?%d+)$")
+                if aimX and aimY then
+                    aimX = tonumber(aimX)
+                    aimY = tonumber(aimY)
+                    local angle = math.atan2(aimY, aimX)
+                    bullet.new(self.x, self.y, angle, eventListener)
+                end
+            end
+
             table.insert(alreadyProcessed, input)
         end
     end
@@ -75,12 +89,12 @@ function Player:update(dt, inputs)
     end
 end
 
-function Player:draw(offsetX, offsetY)
+function Player:draw(cameraX, cameraY)
     love.graphics.setColor(self.color)
     love.graphics.rectangle('fill',
         -- Centralize camera on player and draws every other player relative to it
-        self.x - offsetX + VW / 2 - self.size / 2,
-        self.y - offsetY + VH / 2 - self.size / 2,
+        self.x - cameraX - self.size / 2,
+        self.y - cameraY - self.size / 2,
     self.size, self.size)
 end
 

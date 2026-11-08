@@ -1,5 +1,6 @@
 -- Client.lua
 local Player = require "modules.player"
+local bullet = require "modules.bullet"
 local enet = require "enet"
 local socket = require "socket"
 local host = enet.host_create()
@@ -74,6 +75,18 @@ function client.clientUpdate(selfPlayer, inputs, dt)
                 end
             end
 
+            local x, y, direction = event.data:match(
+                "^spawn_bullet:([%-]?%d+%.?%d*):([%-]?%d+%.?%d*):([%-]?%d+%.?%d*)$"
+            )
+            if x and y and direction then
+                x = tonumber(x)
+                y = tonumber(y)
+                direction = tonumber(direction)
+                if x and y and direction then
+                    bullet.new(x, y, direction)
+                end
+            end
+
         -- If it connected to a new server, pings it
         elseif event.type == "connect" then
             event.peer:send("ping")
@@ -104,7 +117,6 @@ function client.searchServer(dt)
     if discoveryTimer >= 2 then
         discoveryTimer = 0
         local msg = "LANVE2D_DISCOVER"
-        discovery:sendto(msg, "127.0.0.1", 6788)
         discovery:sendto(msg, "255.255.255.255", 6788)
     end
 

@@ -2,12 +2,15 @@
 local client = require 'modules.client'
 local server = require 'modules.server'
 local Player = require 'modules.player'
+local bullet = require 'modules.bullet'
 
 IsServer = false
 
 local selfPlayer = {}
 
 local playerList = {}
+
+local cameraX, cameraY = 0, 0
 
 function love.load(args)
     -- Decides whether the game instance will be a server or a client
@@ -39,12 +42,17 @@ function love.update(dt)
     if love.keyboard.isDown('s') then table.insert(inputs, 's') end
     if love.keyboard.isDown('d') then table.insert(inputs, 'd') end
 
+    if love.mouse.isDown(1) then
+        local mouseX, mouseY = love.mouse.getPosition()
+        table.insert(inputs, "aim:" .. mouseX - VW/2 .. ":" .. mouseY - VH/2)
+    end
+
     -- Updates itself first
-    selfPlayer:update(dt, inputs)
+    selfPlayer:update(dt, inputs, server.eventListener)
 
     -- Updates players (the way of doing it depends if its the host or a client)
     if IsServer then
-        playerList = server(selfPlayer, dt)
+        playerList = server.serverUpdate(selfPlayer, dt)
 
         -- Updates physics
         World:update(dt)
@@ -52,6 +60,13 @@ function love.update(dt)
         playerList = client.clientUpdate(selfPlayer, inputs, dt)
     end
 
+    for _, bullet in ipairs(bullet.bulletList) do
+        bullet:update(dt)
+    end
+
+    -- Camera coordinates
+    cameraX = selfPlayer.x - VW / 2
+    cameraY = selfPlayer.y - VH / 2
 end
 
 function love.draw()
@@ -60,14 +75,18 @@ function love.draw()
 
     -- Different ways of accessing the player:draw function depending if its server or client
     if IsServer then
-        selfPlayer:draw(selfPlayer.x, selfPlayer.y)
+        selfPlayer:draw(cameraX, cameraY)
         for _, client in pairs(playerList) do
-            client.player:draw(selfPlayer.x, selfPlayer.y)
+            client.player:draw(cameraX, cameraY)
         end
     else
         for _, player in pairs(playerList) do
-            player:draw(selfPlayer.x, selfPlayer.y)
+            player:draw(cameraX, cameraY)
         end
         client.selectServerUI()
+    end
+
+    for _, b in ipairs(bullet.bulletList) do
+        b:draw(cameraX, cameraY)
     end
 end

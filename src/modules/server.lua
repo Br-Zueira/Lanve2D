@@ -3,6 +3,8 @@ local Player = require "modules.player"
 local enet = require "enet"
 local socket = require "socket"
 
+local Server = {}
+
 -- Opens a connection as host
 local host = enet.host_create("*:6789")
 
@@ -15,7 +17,7 @@ local udp = socket.udp4()
 udp:setsockname("*", 6788)
 udp:settimeout(0)
 
-local function serverUpdate(selfPlayer, dt)
+function Server.serverUpdate(selfPlayer, dt)
     while true do
         -- If a device pings for a game LAN discover, responds it
         local message, ip, port = udp:receivefrom()
@@ -71,15 +73,16 @@ local function serverUpdate(selfPlayer, dt)
     end
 
     -- Updates players and broadcast updated data to clients
-    host:broadcast("update_player:" .. 0 .. ":" .. selfPlayer.x .. ":" .. selfPlayer.y)
+    host:broadcast("update_player:" .. 0 .. ":" .. selfPlayer.x .. ":" .. selfPlayer.y, 0, "unreliable")
     for _, player in pairs(playerList) do
         if player.player then
-            player.player:update(dt, player.inputs)
+            player.player:update(dt, player.inputs, Server.eventListener)
             host:broadcast(
                 "update_player:" ..
                 player.id .. ":" ..
                 player.player.x .. ":" ..
-                player.player.y
+                player.player.y,
+                0, "unreliable"
             )
         end
     end
@@ -87,4 +90,14 @@ local function serverUpdate(selfPlayer, dt)
     return playerList
 end
 
-return serverUpdate
+function Server.eventListener(e)
+    if e.type == "spawn_bullet" then
+        host:broadcast(
+            "spawn_bullet:" .. e.data.x ..
+            ":" .. e.data.y ..
+            ":" .. e.data.direction
+        )
+    end
+end
+
+return Server
