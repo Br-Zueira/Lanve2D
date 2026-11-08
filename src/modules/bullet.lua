@@ -6,13 +6,14 @@ local Bullet = {
     x = 0, y = 0,
     speedX = 0, speedY = 0,
     timer = 0, duration = 5,
-    dead = false
+    dead = false, shooterID = nil,
+    type = "bullet"
 }
 Bullet.__index = Bullet
 
 Bullet.bulletList = {}
 
-function Bullet.new(x, y, direction, eventListener, customColor)
+function Bullet.new(x, y, direction, eventListener, shooterID, customColor)
     local self = {}
     setmetatable(self, Bullet)
 
@@ -20,11 +21,14 @@ function Bullet.new(x, y, direction, eventListener, customColor)
     self.x = x
     self.y = y
 
+    self.shooterID = shooterID
+
     -- Physics settings
     if IsServer then
         self.body = love.physics.newBody(World, self.x, self.y, "dynamic")
         self.shape = love.physics.newRectangleShape(self.size, self.size)
         self.fixture = love.physics.newFixture(self.body, self.shape, 1.0)
+        self.fixture:setUserData(self)
     end
 
     self.speedX = math.cos(direction) * self.speed

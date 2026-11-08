@@ -25,10 +25,33 @@ function love.load(args)
     if IsServer then
         love.physics.setMeter(32)
         World = love.physics.newWorld(0, 0, true)
+
+        local function preSolve(fixtureA, fixtureB, contact)
+            local a = fixtureA:getUserData()
+            local b = fixtureB:getUserData()
+
+            if not a or not b then return end
+
+            local bullet, player
+
+            if a.type == "bullet" and b.type == "player" then
+                bullet, player = a, b
+            elseif b.type == "bullet" and a.type == "player" then
+                bullet, player = b, a
+            end
+
+            if bullet and player then
+                if bullet.shooterID == player.id then
+                    contact:setEnabled(false)
+                end
+            end
+        end
+
+        World:setCallbacks(nil, nil, preSolve)
     end
 
     -- Creates the game instance player
-    selfPlayer = Player.new(0, 0)
+    selfPlayer = Player.new(0, 0, 0)
 end
 
 function love.update(dt)

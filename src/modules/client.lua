@@ -61,7 +61,7 @@ function client.clientUpdate(selfPlayer, inputs, dt)
                         selfPlayer.y = y
                     elseif id then
                         -- If its a new player, create it
-                        playerList[id] = Player.new(x, y, {1.0, 0.0, 0.0, 1.0})
+                        playerList[id] = Player.new(x, y, id, {1.0, 0.0, 0.0, 1.0})
                     end
                 end
             end

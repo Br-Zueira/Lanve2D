@@ -50,7 +50,7 @@ function Server.serverUpdate(selfPlayer, dt)
             event.peer:send("your_id:" .. nextId)
 
             -- Creates a new player on server that represents the new client
-            local newPlayer =  Player.new(0, 0, {1.0, 0.0, 0.0, 1.0})
+            local newPlayer =  Player.new(0, 0, nextId, {1.0, 0.0, 0.0, 1.0})
 
             -- Stores the new player
             playerList[event.peer] = { id=nextId, player=newPlayer, inputs={} }

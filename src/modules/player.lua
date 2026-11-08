@@ -7,11 +7,12 @@ local Player = {
     color = {1.0, 1.0, 1.0, 1.0},
     x = 0, y = 0,
     speedX = 0, speedY = 0,
-    shootCooldown = 0
+    shootCooldown = 0, id = nil,
+    type = "player"
 }
 Player.__index = Player
 
-function Player.new(x, y, customColor)
+function Player.new(x, y, id, customColor)
     local self = {}
     setmetatable(self, Player)
 
@@ -19,11 +20,14 @@ function Player.new(x, y, customColor)
     self.x = x
     self.y = y
 
+    self.id = id
+
     -- Physics settings
     if IsServer then
         self.body = love.physics.newBody(World, self.x, self.y, "dynamic")
         self.shape = love.physics.newRectangleShape(self.size, self.size)
         self.fixture = love.physics.newFixture(self.body, self.shape, 1.0)
+        self.fixture:setUserData(self)
     end
 
     -- Optional color override
@@ -68,7 +72,7 @@ function Player:update(dt, inputs, eventListener)
                     aimX = tonumber(aimX)
                     aimY = tonumber(aimY)
                     local angle = math.atan2(aimY, aimX)
-                    bullet.new(self.x, self.y, angle, eventListener)
+                    bullet.new(self.x, self.y, angle, eventListener, self.id)
                 end
             end
 
