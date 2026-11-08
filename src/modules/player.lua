@@ -17,9 +17,11 @@ function Player.new(x, y, customColor)
     self.y = y
 
     -- Physics settings
-    self.body = love.physics.newBody(World, self.x, self.y, "dynamic")
-    self.shape = love.physics.newRectangleShape(self.size, self.size)
-    self.fixture = love.physics.newFixture(self.body, self.shape, 1.0)
+    if IsServer then
+        self.body = love.physics.newBody(World, self.x, self.y, "dynamic")
+        self.shape = love.physics.newRectangleShape(self.size, self.size)
+        self.fixture = love.physics.newFixture(self.body, self.shape, 1.0)
+    end
 
     -- Optional color override
     if customColor then self.color = customColor end
@@ -64,8 +66,13 @@ function Player:update(dt, inputs)
     end
 
     -- Position updating
-    self.body:setLinearVelocity(self.speedX, self.speedY)
-    self.x, self.y = self.body:getPosition()
+    if IsServer then
+        self.body:setLinearVelocity(self.speedX, self.speedY)
+        self.x, self.y = self.body:getPosition()
+    else
+        self.x = self.x + self.speedX * dt
+        self.y = self.y + self.speedY * dt
+    end
 end
 
 function Player:draw(offsetX, offsetY)

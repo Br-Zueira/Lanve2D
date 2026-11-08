@@ -62,6 +62,8 @@ local function serverUpdate(selfPlayer, dt)
 
             if player then
                 host:broadcast("player_disconnected:" .. player.id)
+                playerList[event.peer].player.body:destroy()
+                playerList[event.peer].player = nil
                 playerList[event.peer] = nil
             end
         end

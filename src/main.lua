@@ -3,7 +3,7 @@ local client = require 'modules.client'
 local server = require 'modules.server'
 local Player = require 'modules.player'
 
-local isServer = false
+IsServer = false
 
 local selfPlayer = {}
 
@@ -12,15 +12,17 @@ local playerList = {}
 function love.load(args)
     -- Decides whether the game instance will be a server or a client
     if args[1] == "server" then
-        isServer = true
+        IsServer = true
         love.window.setTitle("Lanve2D: Server")
     else
         love.window.setTitle("Lanve2D: Client")
     end
 
     -- Physics setup
-    love.physics.setMeter(32)
-    World = love.physics.newWorld(0, 0, true)
+    if IsServer then
+        love.physics.setMeter(32)
+        World = love.physics.newWorld(0, 0, true)
+    end
 
     -- Creates the game instance player
     selfPlayer = Player.new(0, 0)
@@ -41,14 +43,15 @@ function love.update(dt)
     selfPlayer:update(dt, inputs)
 
     -- Updates players (the way of doing it depends if its the host or a client)
-    if isServer then
+    if IsServer then
         playerList = server(selfPlayer, dt)
+
+        -- Updates physics
+        World:update(dt)
     else
         playerList = client.clientUpdate(selfPlayer, inputs, dt)
     end
 
-    -- Updates physics
-    World:update(dt)
 end
 
 function love.draw()
@@ -56,7 +59,7 @@ function love.draw()
     love.graphics.setColor(0.0, 0.0, 0.0, 1.0)
 
     -- Different ways of accessing the player:draw function depending if its server or client
-    if isServer then
+    if IsServer then
         selfPlayer:draw(selfPlayer.x, selfPlayer.y)
         for _, client in pairs(playerList) do
             client.player:draw(selfPlayer.x, selfPlayer.y)
