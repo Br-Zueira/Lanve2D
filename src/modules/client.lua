@@ -13,7 +13,7 @@ local server = nil
 local serverList = {}
 local isOnMatch = false
 
-local discovery = socket.udp()
+local discovery = socket.udp4()
 local discoveryTimer = 0
 discovery:setoption("broadcast", true)
 discovery:setsockname("*", 0)
@@ -103,12 +103,9 @@ function client.searchServer(dt)
     discoveryTimer = discoveryTimer + dt
     if discoveryTimer >= 2 then
         discoveryTimer = 0
-        discovery:sendto("LANVE2D_DISCOVER", "127.0.0.1", 6788)
-        discovery:sendto(
-            "LANVE2D_DISCOVER",
-            "255.255.255.255",
-            6788
-        )
+        local msg = "LANVE2D_DISCOVER"
+        discovery:sendto(msg, "127.0.0.1", 6788)
+        discovery:sendto(msg, "255.255.255.255", 6788)
     end
 
     -- Processes every received package to see if its a game host
