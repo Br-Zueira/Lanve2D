@@ -11,9 +11,19 @@ Player.__index = Player
 function Player.new(x, y, customColor)
     local self = {}
     setmetatable(self, Player)
+
+    -- World position
     self.x = x
     self.y = y
+
+    -- Physics settings
+    self.body = love.physics.newBody(World, self.x, self.y, "dynamic")
+    self.shape = love.physics.newRectangleShape(self.size, self.size)
+    self.fixture = love.physics.newFixture(self.body, self.shape, 1.0)
+
+    -- Optional color override
     if customColor then self.color = customColor end
+
     return self
 end
 
@@ -53,8 +63,9 @@ function Player:update(dt, inputs)
         self.speedY = self.speedY / length * self.speed
     end
 
-    self.x = self.x + (self.speedX * dt)
-    self.y = self.y + (self.speedY * dt)
+    -- Position updating
+    self.body:setLinearVelocity(self.speedX, self.speedY)
+    self.x, self.y = self.body:getPosition()
 end
 
 function Player:draw(offsetX, offsetY)

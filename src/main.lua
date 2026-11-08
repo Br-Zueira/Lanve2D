@@ -5,17 +5,25 @@ local Player = require 'modules.player'
 
 local isServer = false
 
-local selfPlayer = Player.new(400, 300)
+local selfPlayer = {}
 
 local playerList = {}
 
 function love.load(args)
+    -- Decides whether the game instance will be a server or a client
     if args[1] == "server" then
         isServer = true
         love.window.setTitle("Lanve2D: Server")
     else
         love.window.setTitle("Lanve2D: Client")
     end
+
+    -- Physics setup
+    love.physics.setMeter(32)
+    World = love.physics.newWorld(0, 0, true)
+
+    -- Creates the game instance player
+    selfPlayer = Player.new(0, 0)
 end
 
 function love.update(dt)
@@ -38,6 +46,9 @@ function love.update(dt)
     else
         playerList = client.clientUpdate(selfPlayer, inputs, dt)
     end
+
+    -- Updates physics
+    World:update(dt)
 end
 
 function love.draw()

@@ -54,11 +54,11 @@ function client.clientUpdate(selfPlayer, inputs, dt)
                     playerList[id].y = y
                 else
                     -- If its to update itself, adds itself to playerList
-                    if id == myId then
+                    if id and id == myId then
                         playerList[id] = selfPlayer
                         selfPlayer.x = x
                         selfPlayer.y = y
-                    else
+                    elseif id then
                         -- If its a new player, create it
                         playerList[id] = Player.new(x, y, {1.0, 0.0, 0.0, 1.0})
                     end
@@ -69,7 +69,9 @@ function client.clientUpdate(selfPlayer, inputs, dt)
             local disconnectedId = event.data:match("^player_disconnected:(%d+)$")
             if disconnectedId then
                 disconnectedId = tonumber(disconnectedId)
-                playerList[disconnectedId] = nil
+                if disconnectedId then
+                    playerList[disconnectedId] = nil
+                end
             end
 
         -- If it connected to a new server, pings it
