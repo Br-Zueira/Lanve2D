@@ -109,7 +109,7 @@ function love.draw()
         client.selectServerUI()
     end
 
-    for _, b in ipairs(bullet.bulletList) do
+    for _, b in pairs(bullet.bulletList) do
         b:draw(cameraX, cameraY)
     end
 end

@@ -7,13 +7,16 @@ local Bullet = {
     speedX = 0, speedY = 0,
     timer = 0, duration = 5,
     dead = false, shooterID = nil,
-    type = "bullet"
+    type = "bullet", eventListener = nil,
+    id = nil
 }
 Bullet.__index = Bullet
 
 Bullet.bulletList = {}
 
-function Bullet.new(x, y, direction, eventListener, shooterID, customColor)
+local nextId = 1
+
+function Bullet.new(x, y, direction, eventListener, shooterID, id, customColor)
     local self = {}
     setmetatable(self, Bullet)
 
@@ -21,6 +24,12 @@ function Bullet.new(x, y, direction, eventListener, shooterID, customColor)
     self.x = x
     self.y = y
 
+    if id then
+        self.id = id
+    else
+        self.id = nextId
+        nextId = nextId + 1
+    end
     self.shooterID = shooterID
 
     -- Physics settings
@@ -37,13 +46,14 @@ function Bullet.new(x, y, direction, eventListener, shooterID, customColor)
     -- Optional color override
     if customColor then self.color = customColor end
 
-    table.insert(Bullet.bulletList, self)
+    Bullet.bulletList[self.id] = self
 
     if IsServer then
         eventListener({
             type="spawn_bullet", data={
-                x=x, y=y, direction=direction
+                x=x, y=y, direction=direction, id=self.id, shooterID=shooterID
         }})
+        self.eventListener = eventListener
     end
 
     return self
@@ -63,17 +73,16 @@ function Bullet:update(dt)
     end
 
     if self.timer >= self.duration then
-        self:destroy()
+        self.dead = true
     end
+
+    if self.dead then self:destroy() end
 end
 
 function Bullet:destroy()
-    for i = #Bullet.bulletList, 1, -1 do
-        if Bullet.bulletList[i] == self then
-            table.remove(Bullet.bulletList, i)
-        end
-    end
+    Bullet.bulletList[self.id] = nil
     if IsServer then
+        self.eventListener({type="destroy_bullet", data={id=self.id}})
         self.body:destroy()
         self.body = nil
         self.shape = nil

@@ -75,15 +75,25 @@ function client.clientUpdate(selfPlayer, inputs, dt)
                 end
             end
 
-            local x, y, direction = event.data:match(
-                "^spawn_bullet:([%-]?%d+%.?%d*):([%-]?%d+%.?%d*):([%-]?%d+%.?%d*)$"
+            local x, y, direction, id, shooterID = event.data:match(
+                "^spawn_bullet:([%-]?%d+%.?%d*):([%-]?%d+%.?%d*):([%-]?%d+%.?%d*):(%d+):(%d+)$"
             )
-            if x and y and direction then
+            if x and y and direction and id and shooterID then
                 x = tonumber(x)
                 y = tonumber(y)
+                id = tonumber(id)
+                shooterID = tonumber(shooterID)
                 direction = tonumber(direction)
                 if x and y and direction then
-                    bullet.new(x, y, direction)
+                    bullet.new(x, y, direction, nil, shooterID, id)
+                end
+            end
+
+            local id = event.data.match("^destroy_bullet:(%d+)$")
+            if id then
+                id = tonumber(id)
+                if id then
+                    bullet.bulletList[id] = nil
                 end
             end
 

@@ -95,7 +95,13 @@ function Server.eventListener(e)
         host:broadcast(
             "spawn_bullet:" .. e.data.x ..
             ":" .. e.data.y ..
-            ":" .. e.data.direction
+            ":" .. e.data.direction ..
+            ":" .. e.data.id ..
+            ":" .. e.data.shooterID
+        )
+    elseif e.type == "destroy_bullet" then
+        host:broadcast(
+            "destroy_bullet:" .. e.data.id
         )
     end
 end
